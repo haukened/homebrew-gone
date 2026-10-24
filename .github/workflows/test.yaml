@@ -1,0 +1,36 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: install (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Put Homebrew on the PATH (Linux)
+        if: runner.os == 'Linux'
+        run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+      - name: Tap this checkout
+        run: brew tap haukened/gone "$GITHUB_WORKSPACE"
+      - name: Audit
+        run: brew audit --strict haukened/gone/gone
+      - name: Install
+        run: brew install haukened/gone/gone
+      - name: Test
+        run: |
+          brew test haukened/gone/gone
+          gone version
