@@ -26,6 +26,14 @@ jobs:
         run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
       - name: Tap this checkout
         run: brew tap haukened/gone "$GITHUB_WORKSPACE"
+      # Homebrew 6 refuses to load formulae from untrusted taps, and audit runs
+      # before install would trust it. Older Homebrew has no `brew trust`.
+      - name: Trust the formula
+        run: |
+          brew --version
+          if brew trust --help >/dev/null 2>&1; then
+            brew trust --formula haukened/gone/gone
+          fi
       - name: Audit
         run: brew audit --strict haukened/gone/gone
       - name: Install
